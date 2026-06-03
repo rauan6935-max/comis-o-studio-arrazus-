@@ -213,19 +213,43 @@ let totalFaturado = 0;
 let totalProfissional = 0;
 let totalSalao = 0;
 
+function atualizar(){
+document.getElementById("totalFaturado").innerText = "R$ " + totalFaturado.toFixed(2);
+document.getElementById("totalProfissional").innerText = "R$ " + totalProfissional.toFixed(2);
+document.getElementById("totalSalao").innerText = "R$ " + totalSalao.toFixed(2);
+}
+
+function salvarDados(){
+
+let linhas = document.querySelectorAll("#tabela tr");
+
+let dados = [];
+
+linhas.forEach(linha => {
+dados.push({
+procedimento: linha.cells[0].innerText,
+profissional: linha.cells[1].innerText,
+data: linha.cells[2].innerText,
+valor: linha.cells[3].innerText
+});
+});
+
+localStorage.setItem("procedimentos", JSON.stringify(dados));
+
+localStorage.setItem("totais", JSON.stringify({
+faturado: totalFaturado,
+profissional: totalProfissional,
+salao: totalSalao
+}));
+
+}
+
 function adicionar(){
 
-let procedimento =
-document.getElementById("procedimento").value;
-
-let profissionalNome =
-document.getElementById("profissionalNome").value;
-
-let data =
-document.getElementById("data").value;
-
-let valor =
-parseFloat(document.getElementById("valor").value);
+let procedimento = document.getElementById("procedimento").value;
+let profissionalNome = document.getElementById("profissionalNome").value;
+let data = document.getElementById("data").value;
+let valor = parseFloat(document.getElementById("valor").value);
 
 if(!procedimento || !profissionalNome || !data || !valor){
 alert("Preencha todos os campos.");
@@ -235,14 +259,10 @@ return;
 let profissional = valor * 0.80;
 let salao = valor * 0.20;
 
-let tabela =
-document.getElementById("tabela");
+let tabela = document.getElementById("tabela");
+let linha = tabela.insertRow();
 
-let linha =
-tabela.insertRow();
-
-linha.innerHTML =
-`
+linha.innerHTML = `
 <td>${procedimento}</td>
 <td>${profissionalNome}</td>
 <td>${data}</td>
@@ -250,11 +270,7 @@ linha.innerHTML =
 <td>R$ ${profissional.toFixed(2)}</td>
 <td>R$ ${salao.toFixed(2)}</td>
 <td>
-<button class="excluir"
-onclick="remover(this,
-${valor},
-${profissional},
-${salao})">
+<button class="excluir" onclick="remover(this, ${valor}, ${profissional}, ${salao})">
 Excluir
 </button>
 </td>
@@ -265,12 +281,12 @@ totalProfissional += profissional;
 totalSalao += salao;
 
 atualizar();
+salvarDados();
 
-document.getElementById("procedimento").value="";
-document.getElementById("profissionalNome").value="";
-document.getElementById("data").value="";
-document.getElementById("valor").value="";
-
+document.getElementById("procedimento").value = "";
+document.getElementById("profissionalNome").value = "";
+document.getElementById("data").value = "";
+document.getElementById("valor").value = "";
 }
 
 function remover(btn,valor,profissional,salao){
@@ -282,24 +298,44 @@ totalProfissional -= profissional;
 totalSalao -= salao;
 
 atualizar();
-
+salvarDados();
 }
 
-function atualizar(){
+window.onload = function(){
 
-document.getElementById("totalFaturado")
-.innerText =
-"R$ " + totalFaturado.toFixed(2);
+let dados = JSON.parse(localStorage.getItem("procedimentos")) || [];
 
-document.getElementById("totalProfissional")
-.innerText =
-"R$ " + totalProfissional.toFixed(2);
+dados.forEach(item => {
 
-document.getElementById("totalSalao")
-.innerText =
-"R$ " + totalSalao.toFixed(2);
+let tabela = document.getElementById("tabela");
+let linha = tabela.insertRow();
 
-}
+let valor = parseFloat(item.valor.replace("R$","")) || 0;
+let profissional = valor * 0.80;
+let salao = valor * 0.20;
+
+linha.innerHTML = `
+<td>${item.procedimento}</td>
+<td>${item.profissional}</td>
+<td>${item.data}</td>
+<td>${item.valor}</td>
+<td>R$ ${profissional.toFixed(2)}</td>
+<td>R$ ${salao.toFixed(2)}</td>
+<td>
+<button class="excluir" onclick="remover(this, ${valor}, ${profissional}, ${salao})">
+Excluir
+</button>
+</td>
+`;
+
+totalFaturado += valor;
+totalProfissional += profissional;
+totalSalao += salao;
+
+});
+
+atualizar();
+};
 
 </script>
 
